@@ -1,0 +1,150 @@
+/* Overlay extension. Reuses the console's emerald/gold tokens and five-size type scale. */
+#nexus { display: none; }
+html.overlay { font-size: clamp(12px, 0.83vw, 20px); --color-surface-overlay: rgba(6, 16, 13, 0.94); }
+html.overlay main {
+  position: relative;
+  isolation: isolate;
+  padding: 4.5rem 1.5rem 1.5rem;
+  gap: 1rem 2.5rem;
+  grid-template-columns: minmax(250px, 23%) minmax(0, 1fr) minmax(250px, 23%);
+  grid-template-areas:
+    "mint nexus hero"
+    "mint nexus events"
+    "supply nexus wheel"
+    "blocks blocks blocks";
+}
+html.overlay main > section { position: relative; z-index: 1; }
+html.overlay #nexus {
+  grid-area: nexus;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  min-height: 0;
+  text-align: center;
+  padding-block: 0.5rem;
+  pointer-events: none;
+}
+html.overlay .topbar {
+  z-index: 3;
+  inset-inline-start: 1.5rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-surface-overlay);
+}
+html.overlay .panel, html.overlay .block-card {
+  box-shadow: none;
+  background: var(--color-surface-overlay);
+}
+html.overlay .panel { overflow: auto; scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }
+html.overlay .event-log { overflow-y: auto; max-height: 24rem; }
+html.overlay #events { grid-template-rows: auto minmax(0, 1fr) auto auto; }
+html.overlay #blocks .block-list { gap: 1rem; }
+html.overlay .block-card { padding: 0.75rem; gap: 0.75rem; }
+html.overlay .block-card > canvas { width: 3.25rem; height: 6rem; image-rendering: pixelated; }
+html.overlay .block-card .block-body { font-size: var(--text-xs); }
+html.overlay .block-card .block-body a { min-height: 24px; }
+html.overlay .vault { grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr); }
+html.overlay .vault-egg { min-height: 8rem; }
+html.overlay .value-mint { font-size: var(--text-lg); }
+html.overlay .hen { width: 4.25rem; height: auto; }
+html.overlay #egg-canvas { max-height: 12rem; width: auto; }
+html.overlay .status-line { gap: 0.25rem 0.75rem; }
+html.overlay .kpis { gap: 0.75rem; }
+
+.nexus-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  pointer-events: none;
+  z-index: 0;
+}
+.nexus-heading, .nexus-tools { flex: none; }
+.nexus-heading { display: grid; justify-items: center; gap: 0.5rem; align-self: center; padding: 0.5rem 1rem; border-radius: var(--radius-control); background: var(--color-surface-overlay); }
+.nexus-heading h2 { color: var(--color-text); }
+.nexus-subtitle { font-size: var(--text-sm); color: var(--color-text-muted); }
+.nexus-feed { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--color-text-muted); font-size: var(--text-xs); }
+.nexus-led { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.nexus-feed[data-state="live"] { color: var(--color-chain); }
+.nexus-feed[data-state="stale"], .nexus-feed[data-state="paused"] { color: var(--color-warning); }
+.nexus-stage { position: relative; flex: 1; min-height: 16rem; margin-block: 0.5rem; }
+.nexus-orbit {
+  position: absolute;
+  inset: 12% 5%;
+  border-radius: 50%;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.nexus-orbit:active { cursor: grabbing; }
+.nexus-orbit:focus-visible { outline-offset: 4px; }
+.nexus-hud { position: absolute; inset: 0; pointer-events: none; }
+.nexus-metric { position: absolute; min-width: 5.5rem; max-width: 46%; padding: 0.25rem 0.5rem; background: var(--color-surface-overlay); }
+.nexus-metric dt { font-size: var(--text-xs); color: var(--color-text-muted); }
+.nexus-metric dd { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: var(--text-xl); font-weight: 600; color: var(--color-chain); overflow-wrap: anywhere; line-height: 1.25; }
+.nexus-height { inset-block-start: 2%; inset-inline-start: 1%; text-align: start; }
+.nexus-round { inset-block-start: 2%; inset-inline-end: 1%; text-align: end; }
+.nexus-progress { inset-block-end: 1%; inset-inline-start: 50%; transform: translateX(-50%); }
+.nexus-progress dd { color: var(--color-mint); }
+.nexus-tools { display: grid; justify-items: center; gap: 0.75rem; }
+.nexus-tools > .help, .nexus-caption { background: var(--color-surface-overlay); }
+.nexus-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem; pointer-events: auto; }
+.nexus-controls .btn { background-color: var(--color-bg); min-height: 44px; }
+.nexus-controls .btn-primary { background-color: var(--color-chain-solid); }
+.nexus-controls .btn-primary[aria-pressed="true"] { background-color: var(--color-bg); color: var(--color-chain); }
+.nexus-controls .btn:disabled { cursor: default; }
+.nexus-controls .nexus-zoom { min-width: 44px; padding-inline: 0.5rem; font-size: var(--text-lg); }
+.nexus-caption { color: var(--color-text-muted); font-size: var(--text-xs); max-width: 44ch; }
+.nexus-return { display: inline-flex; align-items: center; min-height: 24px; padding-inline: 0.5rem; background: var(--color-surface-overlay); font-size: var(--text-xs); pointer-events: auto; }
+#nexus-fallback { position: absolute; inset: 40% 1rem auto; }
+
+/* A narrow or short browser gets a readable scrolling overlay, with every panel reachable. */
+@media (max-width: 1099px), (max-height: 699px) {
+  html.overlay { font-size: 16px; }
+  html.overlay, html.overlay body { height: auto; overflow: visible; overflow-x: clip; }
+  html.overlay body { min-height: 100vh; }
+  html.overlay .topbar { position: relative; inset: auto; display: flex; max-width: none; padding: 1rem; }
+  html.overlay main {
+    height: auto;
+    padding: 0.5rem 1rem 2rem;
+    gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas: "nexus nexus" "mint hero" "mint events" "supply wheel" "blocks blocks";
+  }
+  html.overlay #nexus { min-height: 33rem; padding-block: 0; }
+  .nexus-stage { min-height: 19rem; }
+  .nexus-subtitle { max-width: 34ch; }
+  .nexus-metric dd { font-size: var(--text-lg); }
+  html.overlay #mint, html.overlay #supply, html.overlay #events, html.overlay #wheel { grid-column: auto; }
+  html.overlay .panel { overflow: visible; }
+  html.overlay #events { max-height: 30rem; }
+  html.overlay .event-log { overflow-y: auto; max-height: 20rem; }
+  html.overlay #blocks .block-list { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; }
+  html.overlay #supply .vault { height: auto; }
+  html.overlay #supply .vault-egg { min-height: 12rem; }
+  html.overlay .block-card { padding: 1rem; }
+  html.overlay .block-card .block-body a, .nexus-return { min-height: 44px; }
+}
+@media (max-width: 599px) {
+  html.overlay main { grid-template-columns: minmax(0, 1fr); grid-template-areas: "nexus" "hero" "mint" "supply" "events" "wheel" "blocks"; }
+  html.overlay #nexus { min-height: 35rem; }
+  .nexus-heading h2 { max-width: 19ch; }
+  .nexus-stage { min-height: 18rem; }
+  .nexus-height, .nexus-round { inset-block-start: 0; }
+  .nexus-tools { gap: 0.5rem; }
+  .nexus-tools .help { max-width: 30ch; }
+  .nexus-controls .btn { padding-inline: 0.75rem; }
+  .nexus-controls .nexus-zoom { padding-inline: 0.25rem; }
+  html.overlay #blocks .block-list { grid-template-columns: minmax(0, 1fr); }
+  html.overlay .block-card { grid-template-columns: auto minmax(0, 1fr); }
+  html.overlay .vault-egg { max-height: 16rem; }
+}
+@media (forced-colors: active) {
+  .nexus-orbit:focus-visible { outline-color: Highlight; }
+  .nexus-metric { background: Canvas; }
+  .nexus-metric dd, .nexus-feed { color: CanvasText; }
+}

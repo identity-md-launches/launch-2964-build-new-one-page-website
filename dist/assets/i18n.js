@@ -1,4 +1,5 @@
 // Interface strings for the eight supported languages. English is the fallback.
+import { NEXUS_STRINGS } from './nexus-i18n.js';
 
 /** @type {{code: string, name: string, locale: string}[]} */
 export const LANGS = [
@@ -110,7 +111,7 @@ export const STRINGS = {
     kitPanels: 'Panels to show',
     kitLink: 'Overlay link',
     loading: 'Loading…',
-    errorLoad: 'Unable to load this data. Retrying automatically.',
+    errorLoad: 'Unable to load {feed}. Retrying automatically.',
     retry: 'Retry now',
     unavailable: 'The API reports this data as unavailable ({reason}).',
     unknown: 'Unknown',
@@ -229,7 +230,7 @@ export const STRINGS = {
     kitPanels: '要显示的面板',
     kitLink: '叠加层链接',
     loading: '加载中…',
-    errorLoad: '无法加载此数据。正在自动重试。',
+    errorLoad: '无法加载{feed}。正在自动重试。',
     retry: '立即重试',
     unavailable: 'API 报告此数据不可用（{reason}）。',
     unknown: '未知',
@@ -348,7 +349,7 @@ export const STRINGS = {
     kitPanels: 'Các bảng hiển thị',
     kitLink: 'Liên kết lớp phủ',
     loading: 'Đang tải…',
-    errorLoad: 'Không thể tải dữ liệu này. Đang tự động thử lại.',
+    errorLoad: 'Không thể tải {feed}. Đang tự động thử lại.',
     retry: 'Thử lại ngay',
     unavailable: 'API báo dữ liệu này không khả dụng ({reason}).',
     unknown: 'Không rõ',
@@ -467,7 +468,7 @@ export const STRINGS = {
     kitPanels: '표시할 패널',
     kitLink: '오버레이 링크',
     loading: '불러오는 중…',
-    errorLoad: '이 데이터를 불러올 수 없습니다. 자동으로 다시 시도합니다.',
+    errorLoad: '{feed} 데이터를 불러올 수 없습니다. 자동으로 다시 시도합니다.',
     retry: '지금 다시 시도',
     unavailable: 'API가 이 데이터를 사용할 수 없다고 보고했습니다({reason}).',
     unknown: '알 수 없음',
@@ -586,7 +587,7 @@ export const STRINGS = {
     kitPanels: 'Показываемые панели',
     kitLink: 'Ссылка на оверлей',
     loading: 'Загрузка…',
-    errorLoad: 'Не удалось загрузить эти данные. Повторная попытка выполняется автоматически.',
+    errorLoad: 'Не удалось загрузить: {feed}. Повторная попытка выполняется автоматически.',
     retry: 'Повторить сейчас',
     unavailable: 'API сообщает, что эти данные недоступны ({reason}).',
     unknown: 'Неизвестно',
@@ -705,7 +706,7 @@ export const STRINGS = {
     kitPanels: 'Gösterilecek paneller',
     kitLink: 'Katman bağlantısı',
     loading: 'Yükleniyor…',
-    errorLoad: 'Bu veriler yüklenemedi. Otomatik olarak yeniden deneniyor.',
+    errorLoad: '{feed} yüklenemedi. Otomatik olarak yeniden deneniyor.',
     retry: 'Şimdi yeniden dene',
     unavailable: 'API bu verinin kullanılamadığını bildiriyor ({reason}).',
     unknown: 'Bilinmiyor',
@@ -824,7 +825,7 @@ export const STRINGS = {
     kitPanels: 'Paneles visibles',
     kitLink: 'Enlace de superposición',
     loading: 'Cargando…',
-    errorLoad: 'No se pudieron cargar estos datos. Reintentando automáticamente.',
+    errorLoad: 'No se pudo cargar: {feed}. Reintentando automáticamente.',
     retry: 'Reintentar ahora',
     unavailable: 'La API indica que estos datos no están disponibles ({reason}).',
     unknown: 'Desconocido',
@@ -943,7 +944,7 @@ export const STRINGS = {
     kitPanels: 'Panel yang ditampilkan',
     kitLink: 'Tautan overlay',
     loading: 'Memuat…',
-    errorLoad: 'Tidak dapat memuat data ini. Mencoba ulang secara otomatis.',
+    errorLoad: 'Tidak dapat memuat {feed}. Mencoba ulang secara otomatis.',
     retry: 'Coba lagi sekarang',
     unavailable: 'API melaporkan data ini tidak tersedia ({reason}).',
     unknown: 'Tidak diketahui',
@@ -983,6 +984,8 @@ export function translate(lang, key, vars) {
     return value === undefined || value === null ? '' : String(value);
   });
 }
+
+for (const [lang, strings] of Object.entries(NEXUS_STRINGS)) Object.assign(STRINGS[lang], strings);
 
 /** @param {string} key */
 export function hasKey(key) {

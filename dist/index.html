@@ -13,6 +13,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
   <link rel="stylesheet" href="./assets/styles.css">
+  <link rel="stylesheet" href="./assets/nexus.css">
   <script>if (/[?&]overlay=1(&|$)/.test(location.search)) document.documentElement.classList.add('overlay');</script>
   <script type="module" src="./assets/app.js"></script>
 </head>
@@ -83,6 +84,37 @@
           <span class="value-md" id="kpi-progress-text">-</span>
         </div>
         <p class="warning" id="core-paused" data-i18n="corePaused" hidden>The core contract is paused.</p>
+      </div>
+    </section>
+
+    <section id="nexus" aria-labelledby="nexus-title" hidden>
+      <div class="nexus-heading">
+        <h2 id="nexus-title" data-i18n="nexusTitle">Squeekchain Nexus Sphere</h2>
+        <p class="nexus-subtitle" data-i18n="nexusDescription">Live chain data. Drag the sphere to explore.</p>
+        <p class="nexus-feed" id="nexus-feed" data-state="connecting" role="status">
+          <span class="nexus-led" aria-hidden="true"></span>
+          <span id="nexus-feed-text" data-i18n="nexusWaiting">Waiting for telemetry</span>
+        </p>
+      </div>
+      <div class="nexus-stage" id="nexus-stage">
+        <div id="nexus-orbit" class="nexus-orbit" tabindex="0" role="group" aria-label="Interactive 3D sphere" data-i18n-aria="nexusOrbit" aria-describedby="nexus-help"></div>
+        <dl class="nexus-hud">
+          <div class="nexus-metric nexus-height"><dt data-i18n="nexusHeight">Block height</dt><dd id="nexus-height">-</dd></div>
+          <div class="nexus-metric nexus-round"><dt data-i18n="nexusRound">Round ID</dt><dd id="nexus-round">-</dd></div>
+          <div class="nexus-metric nexus-progress"><dt data-i18n="nexusProgress">Next block</dt><dd id="nexus-progress">-</dd></div>
+        </dl>
+        <p id="nexus-fallback" class="help" data-i18n="nexusNoCanvas" hidden>Canvas unavailable. Live values remain below.</p>
+      </div>
+      <div class="nexus-tools">
+        <p id="nexus-help" class="help" data-i18n="nexusHelp">Drag or use arrow keys to rotate. + / − to zoom.</p>
+        <div class="nexus-controls" role="group" aria-label="Sphere controls" data-i18n-aria="nexusControls">
+          <button type="button" class="btn btn-primary" id="nexus-motion" aria-pressed="false" data-i18n="nexusPause">Pause motion</button>
+          <button type="button" class="btn nexus-zoom" id="nexus-zoom-out" aria-label="Zoom out" data-i18n-aria="nexusZoomOut">−</button>
+          <button type="button" class="btn nexus-zoom" id="nexus-zoom-in" aria-label="Zoom in" data-i18n-aria="nexusZoomIn">+</button>
+          <button type="button" class="btn" id="nexus-reset" data-i18n="nexusReset">Reset view</button>
+        </div>
+        <p class="nexus-caption"><span id="nexus-connections">0 connections</span><span aria-hidden="true"> · </span><span data-i18n="nexusFlow">Animated paths visualize the data feeds.</span></p>
+        <a class="nexus-return" id="nexus-return" href="./" data-i18n="nexusBack">Back to console</a>
       </div>
     </section>
 

@@ -1,100 +1,79 @@
 # SqueekPulse
 
-A one-page, 8-language (EN, ZH, VI, KO, RU, TR, ES, ID) cyber-glass telemetry console and OBS stream overlay for Squeekchain on Sepolia. It reads the public API at `https://api.squeekchain.com` from the browser. There is no backend, no wallet and no API key.
+Live Squeekchain telemetry on Sepolia, in EN, ZH, VI, KO, RU, TR, ES and ID. The normal console includes settlement mosaics, SQK mint and supply panels, wheel distance/activity charts, and an event stream. All data comes from `https://api.squeekchain.com/v1`; the site has no backend or wallet.
 
-> **Verification status: incomplete.** This export has never been executed. The machine it was written on had no working shell or browser, so the build, typecheck, tests and browser checks did not run. See [Build and check results](#build-and-check-results) and [VALIDATION.md](VALIDATION.md). Run the commands below before relying on it.
+Overlay mode (`?overlay=1`) now includes the **Squeekchain Nexus Sphere**: a rotating emerald-and-gold 3D particle/wireframe globe, a live progress ring and HUD, and glowing Bézier tethers to the two SQK panels, telemetry, events, wheel, and each of the five visible settlement cards.
 
-## What it shows
+## Install, rebuild and preview
 
-| Panel | Source | Content |
-| --- | --- | --- |
-| Overview | `/v1/core` | Block height, next-block progress, settled round, work per 1,000 blocks, safe Sepolia block |
-| Settled blocks | `/v1/settlements` | Green 13x24 pixel-mosaic cards with live relative timestamps and Sepolia Etherscan links |
-| SQK mint tracker | `/v1/settlements?range=` | NOW, 24H, 7D, 30D, a pixel-art hen and golden dot-matrix eggs |
-| SQK supply vault | `/v1/economy/state` | Circulating supply against the total cap on a dot-matrix egg canvas |
-| Hamster wheel | `/v1/measurement/stats?range=` | Distance bars (7D, 30D) and a 48-slot UTC activity heatmap |
-| Event stream | `/v1/events` | Live events with category filters, pause and older pages |
-
-How the data behaves:
-
-- **Live means polling.** The API docs define no SSE or WebSocket endpoint. Core, settlements, economy and events refresh every 15 seconds, ranged settlements every 60 seconds and stats every 10 minutes, because the docs call stats too heavy to poll. Polling pauses in a hidden tab and failed feeds back off.
-- **Unknown stays unknown.** A value the API reports as unavailable, or a day with a null distance, is shown as unknown and never as zero.
-- **Eggs.** NOW draws one egg per 10-minute round from `recentRounds`. The API has no per-round data in the wider ranges, so 24H, 7D and 30D draw one egg per API bucket (1 hour, 6 hours, 1 day).
-
-## Install
-
-Requires Node 20 or newer. The site has no runtime or build dependencies, so `package-lock.json` holds only the root package.
+Use Node 20 or newer. This existing project uses native JavaScript ES modules, JSDoc checking and a copy build. There are no runtime/build dependencies. Its existing package manifest and lockfile are preserved; `npm ci` is optional for the empty dependency set.
 
 ```sh
-npm ci
-```
-
-## Preview
-
-```sh
+npm run build
 npm run preview
 ```
 
-This serves `dist/` at `http://127.0.0.1:4173/preview/`, a subpath, so a broken relative asset URL shows up the way it would on a gateway. Set `PORT` to change the port. Use a server rather than opening the file directly, because browsers block ES modules on `file://`.
+Open `http://127.0.0.1:4173/preview/` for the console or `http://127.0.0.1:4173/preview/?overlay=1` for the sphere. Use a web server: ES modules do not work reliably through `file://`.
 
-## Rebuild
+Edit `src/` and rebuild. The build recreates the complete `dist/`, including `dist/index.html` and local assets. Asset URLs are relative and the preview deliberately serves a subpath. Publish the contents of `dist/` as a static site. No server rewrites or compilation on the host are needed.
 
-The source is plain ES modules in `src/`, so the build is an exact copy to `dist/`.
+## Use the overlay
+
+Copy the overlay link from the console and add it as an OBS Browser source, preferably at **1920 × 1080**. The page background remains transparent, with dark backplates behind text. Use OBS's Interact window to operate the sphere controls.
+
+| Control | Action |
+| --- | --- |
+| Drag the sphere | Rotate its 3D view |
+| Arrow keys while the sphere is focused | Rotate without a pointer |
+| `+`, `−` buttons or `+`, `-` keys | Zoom between 75% and 120% |
+| Mouse wheel over the desktop sphere | Zoom; mobile retains vertical scrolling |
+| Reset view / `Home` | Restore the camera without changing data |
+| Pause motion / `Space` | Freeze rotation and packets; live telemetry still refreshes |
+| Back to console | Return to the regular page, preserving the language |
+
+The operating system's reduced-motion setting freezes automatic sphere and packet motion. Explicit rotation/zoom still works. Below 1100px wide, or below 700px tall, the overlay becomes a readable scrolling layout. Below 600px it uses one column, with the sphere and controls first.
+
+| URL parameter | Values |
+| --- | --- |
+| `overlay=1` | Enable the transparent overlay and Nexus Sphere |
+| `lang` | `en`, `zh`, `vi`, `ko`, `ru`, `tr`, `es`, `id` |
+| `panels` | Comma-separated `blocks,mint,supply,wheel,events`; omitted shows all; empty hides these panels |
+| `wheel` | `7d` or `30d` |
+
+Telemetry remains visible even when optional panels are hidden. Tethers attach only to panels and cards that exist. No settlement cards are invented while data is loading or unavailable.
+
+## Data and rendering
+
+- HUD Block height = `core.blockHeight`; Round ID = `core.settledThroughRound` (the settled round). Next block = `core.blockProgress / configuration.blockUnitsPerBlock`, bounded to 0–100% and displayed to one decimal place.
+- Core, settlements, supply and events poll every 15 seconds. Mint ranges poll every 60 seconds; wheel statistics every 10 minutes. Existing retry/backoff and hidden-tab behavior are retained.
+- Errors preserve known HUD values and mark them delayed. Unavailable or missing values display `-`. The HUD never extrapolates chain progress between responses.
+- Continuous packets illustrate the connections, as stated beside the controls. Their speed/count is not a transaction or throughput measurement. They dim when core telemetry is unavailable, delayed or paused.
+- The renderer projects real 3D coordinates onto a transparent Canvas 2D surface: perspective, depth sorting, a wire mesh and 960 particles. It requires no WebGL, models, textures or new packages. Drawing is capped at 30 frames per second and eight million backing pixels.
+
+## Checks
 
 ```sh
-npm run build        # recreate dist/ from src/
-npm run check:dist   # fail if dist/ differs from src/
-npm test             # node:test suite for helpers and translation completeness
-npm run typecheck    # JSDoc check; downloads TypeScript 5 through npx
+npm test
+npm run typecheck
+npm run check:dist
 ```
 
-The site was meant to use Vite, React and TypeScript, but `npm` could not run on the authoring machine, and a real lockfile cannot be written by hand. A dependency-free stack made the export deliverable and keeps the lockfile accurate. TypeScript is fetched on demand and is not pinned in the lockfile.
+Typecheck uses the existing package command, which downloads TypeScript 5 through `npx`. It is not pinned by the dependency-free lockfile.
 
-## OBS overlay
+For the browser integration suite, use an existing Playwright installation and its Chromium browser:
 
-Use **Copy OBS overlay link** on the page, then add the link as a Browser source at 1920 x 1080. Or build the URL yourself:
-
-| Parameter | Values | Effect |
-| --- | --- | --- |
-| `overlay=1` | | Transparent page with no chrome or scrolling. The mint range rotates every 20 seconds. |
-| `lang` | `en zh vi ko ru tr es id` | Language |
-| `panels` | comma list of `blocks,mint,supply,wheel,events` | Panels to show. All of them by default. |
-| `wheel` | `7d`, `30d` | Wheel range. `7d` by default. |
-
-## Layout
-
-```
-src/index.html              page markup, head metadata
-src/assets/app.js           feeds, rendering, interactions
-src/assets/logic.js         pure helpers, covered by tests/
-src/assets/draw.js          canvas: mosaic, hen, eggs, vault, heatmap
-src/assets/i18n.js          the 8 languages
-src/assets/styles.css       tokens, layout, overlay mode
-dist/                       the committed static export, a copy of src/
-scripts/build.mjs           build and --check
-scripts/preview.mjs         local static preview
-tests/logic.test.mjs        helper and translation tests
-DESIGN.md                   implemented design system
-VALIDATION.md               Better Interface review and check record
+```sh
+IMD_PLAYWRIGHT=/path/to/playwright/index.mjs node tests/browser-nexus.mjs
 ```
 
-## Build and check results
+This starts and closes its own static preview, intercepts API requests with a trimmed public capture in `tests/fixtures/telemetry.json`, injects test failures, and saves screenshots/results under `test/scratch/nexus-validation/`. Fixtures are never copied to `dist/`. WebKit is attempted when installed; an unavailable runtime is reported as a limitation.
 
-Recorded on 2026-11-04. Nothing in this table passed, because nothing could be run.
+Results recorded on 2026-11-04: production build, typecheck and export comparison passed; all **16 unit tests**, **13 browser check groups**, and **16/16 visual-probe checks in each mode** passed. The 390px first screen was inspected; responsive checks covered widths from 320 to 1920.
 
-| Command | Result |
-| --- | --- |
-| `npm ci` | **Not run.** No shell. |
-| `npm run build` | **Not run.** `dist/` was written by hand to match `src/`. |
-| `npm run check:dist` | **Not run.** Only line counts were compared: all 8 files match. Byte equality is unconfirmed. |
-| `npm run typecheck` | **Not run.** |
-| `npm test` | **Not run.** The tests have never executed. |
-| `node .imd/reads/skills/design-critic/scripts/taste.mjs --out test/scratch/taste` | **Not run.** |
-| Browser walk at 320, 390, 1440 and overlay | **Not run.** Browser failed to launch. |
-| Live API | **Partly checked.** Field names were read through a summarising fetch tool, not from raw responses in a browser. CORS is `*` according to the API docs, not observed. |
+Direct Chromium API requests returned `ERR_EMPTY_RESPONSE` in this validation run. Public HTTPS requests through curl returned HTTP 200 and `Access-Control-Allow-Origin: *`. Data rendering and recovery were tested with captured responses, not claimed as a successful end-to-end live browser connection. Safari, physical devices and OBS itself were not tested. See [VALIDATION.md](VALIDATION.md) for coverage, fixes and remaining limitations, and [DESIGN.md](DESIGN.md) for the implemented design system.
 
-The shell failed on every attempt with `Sandbox is required but failed to initialize: Failed to create bridge sockets after 5 attempts. Restart to retry.` The browser failed with `Socket path too long` under the deep temporary directory.
+## Files and credits
 
-## Credits
+`src/assets/nexus.js` owns rendering, input and HUD synchronization; `nexus-math.js` owns pure geometry; `nexus.css` extends overlay layout; `nexus-i18n.js` supplies all eight locales. The normal console remains in `app.js`, `draw.js`, `logic.js` and `styles.css`.
 
-Testnet SQK has no monetary value. Design review follows Better Interface by Jakub Krehel (MIT) and the documentation method from Impeccable by Paul Bakaus (Apache-2.0), as pinned for this assignment.
+Testnet SQK has no monetary value. Design review uses Jakub Krehel's Better Interface (MIT, copyright 2026 Jakub Krehel); documentation follows the method from Paul Bakaus's Impeccable (Apache-2.0, copyright 2025 Paul Bakaus), as pinned for this assignment. No runtime code from those guides is distributed.

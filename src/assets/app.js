@@ -20,6 +20,7 @@ const state = {
   overlay: params.overlay,
   kitPanels: new Set(PANELS),
   core: null,
+  coreAt: 0,
   economy: null,
   now: null,
   ranges: {},
@@ -45,6 +46,9 @@ const state = {
   heatPinned: null,
   heatPeak: null,
 };
+
+/** @type {ReturnType<import('./nexus.js').createNexus> | null} */
+let nexus = null;
 
 /* Text and number formatting */
 
@@ -200,7 +204,7 @@ const feeds = {
   core: {
     name: 'core', every: 15000, seq: 0, fails: 0, error: null, timer: null,
     path: () => '/core',
-    apply: (data) => { state.core = data; },
+    apply: (data) => { state.core = data; state.coreAt = Date.now(); },
     render: () => renderCore(),
   },
   now: {
@@ -279,7 +283,8 @@ function renderNotice(id, feed, data) {
   if (feed.error) {
     const retry = el('button', { type: 'button', class: 'btn btn-quiet', text: t('retry') });
     retry.addEventListener('click', () => run(feed));
-    box.append(el('p', { text: t('errorLoad') }), retry);
+    const labels = { 'hero-notice': 'overview', 'blocks-notice': 'blocksTitle', 'mint-notice': 'mintTitle', 'supply-notice': 'supplyTitle', 'wheel-notice': 'wheelTitle', 'events-notice': 'eventsTitle' };
+    box.append(el('p', { text: t('errorLoad', { feed: t(labels[id] || 'overview') }) }), retry);
   }
 }
 
@@ -294,6 +299,7 @@ function renderStatus() {
   const key = { retrying: 'statusRetrying', live: 'statusLive', connecting: 'statusConnecting' }[stateName];
   setText('status-text', t(key));
   setText('updated', state.lastOk ? t('updated', { time: relativeText(state.lastOk) }) : '');
+  nexus?.sync();
 }
 
 function renderCore() {
@@ -1045,6 +1051,19 @@ function start() {
   bindControls();
   applyStaticText();
   if (state.overlay) applyOverlayPanels();
+  if (state.overlay) {
+    $('nexus').hidden = false;
+    import('./nexus.js').then(({ createNexus }) => {
+      nexus = createNexus(() => ({
+        core: state.core, coreAt: state.coreAt, error: feeds.core.error,
+        lang: state.lang, locale: localeOf(state.lang), t,
+      }));
+      nexus.sync();
+    }).catch((error) => {
+      $('nexus-fallback').hidden = false;
+      console.error('SqueekPulse: Nexus failed', error);
+    });
+  }
   renderAll();
   Object.values(feeds).forEach(run);
   setInterval(tick, 1000);
