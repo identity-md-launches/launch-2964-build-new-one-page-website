@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" shape-rendering="crispEdges">
+  <rect width="1200" height="630" fill="#07110e"/>
+  <g fill="#14532f">
+    <rect x="80" y="110" width="28" height="28"/><rect x="176" y="110" width="28" height="28"/>
+    <rect x="112" y="142" width="28" height="28"/><rect x="144" y="174" width="28" height="28"/>
+    <rect x="80" y="206" width="28" height="28"/><rect x="176" y="238" width="28" height="28"/>
+  </g>
+  <g fill="#33c46f">
+    <rect x="112" y="110" width="28" height="28"/><rect x="144" y="110" width="28" height="28"/>
+    <rect x="80" y="142" width="28" height="28"/><rect x="176" y="142" width="28" height="28"/>
+    <rect x="112" y="206" width="28" height="28"/><rect x="144" y="238" width="28" height="28"/>
+  </g>
+  <g fill="#6dffa6">
+    <rect x="112" y="174" width="28" height="28"/><rect x="80" y="174" width="28" height="28"/>
+    <rect x="176" y="174" width="28" height="28"/><rect x="144" y="142" width="28" height="28"/>
+    <rect x="144" y="206" width="28" height="28"/><rect x="112" y="238" width="28" height="28"/>
+  </g>
+  <text x="250" y="210" fill="#e9f6ef" font-family="system-ui, Segoe UI, Roboto, sans-serif" font-size="92" font-weight="600">SqueekPulse</text>
+  <text x="250" y="280" fill="#a6bbb0" font-family="system-ui, Segoe UI, Roboto, sans-serif" font-size="36">Live Squeekchain telemetry and OBS overlay</text>
+  <g fill="#ffd257">
+    <path d="M880 340h60v20h20v20h20v40h20v100h-20v40h-20v20H860v-20h-20v-40h-20V420h20v-40h20v-20h20z"/>
+  </g>
+  <text x="80" y="470" fill="#5dfba0" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="34">Blocks. Mint. Supply. Wheel. Events.</text>
+  <text x="80" y="530" fill="#a6bbb0" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="28">Sepolia testnet, 8 languages</text>
+</svg>

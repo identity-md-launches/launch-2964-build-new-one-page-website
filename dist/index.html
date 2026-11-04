@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SqueekPulse: live Squeekchain telemetry and OBS overlay</title>
+  <meta name="description" content="SqueekPulse is a live telemetry console and OBS stream overlay for Squeekchain on Sepolia: settled blocks, SQK mints, supply, hamster wheel distance and on-chain events in 8 languages.">
+  <meta name="theme-color" content="#07110e">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="SqueekPulse: live Squeekchain telemetry and OBS overlay">
+  <meta property="og:description" content="Settled blocks, SQK mints, supply, hamster wheel distance and on-chain events, live from Sepolia.">
+  <meta property="og:image" content="./assets/og-image.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./assets/styles.css">
+  <script>if (/[?&]overlay=1(&|$)/.test(location.search)) document.documentElement.classList.add('overlay');</script>
+  <script type="module" src="./assets/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="./assets/favicon.svg" alt="" width="28" height="28">
+      <h1>SqueekPulse</h1>
+    </div>
+    <nav class="jump" aria-label="Sections" data-i18n-aria="navLabel">
+      <a href="#blocks" data-i18n="navBlocks">Blocks</a>
+      <a href="#mint" data-i18n="navMint">Mint</a>
+      <a href="#supply" data-i18n="navSupply">Supply</a>
+      <a href="#wheel" data-i18n="navWheel">Wheel</a>
+      <a href="#events" data-i18n="navEvents">Events</a>
+      <a href="#kit" data-i18n="navKit">OBS</a>
+    </nav>
+    <div class="lang">
+      <label class="sr-only" for="lang" data-i18n="language">Language</label>
+      <select id="lang"></select>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="hero" id="hero" aria-label="Overview" data-i18n-aria="overview">
+      <div class="hero-copy">
+        <p class="lede" data-i18n="tagline">Live Squeekchain telemetry on Sepolia, ready to drop into your stream.</p>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="copy-overlay" data-i18n="copyOverlay">Copy OBS overlay link</button>
+          <a class="btn" id="open-overlay" href="./?overlay=1" target="_blank" rel="noopener" data-i18n="openOverlay">Open overlay</a>
+        </div>
+        <p class="copy-status" id="copy-status" role="status"></p>
+        <p class="status-line">
+          <span class="status" id="status" data-state="connecting">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="status-text" role="status" data-i18n="statusConnecting">Connecting</span>
+          </span>
+          <span class="muted" id="updated"></span>
+        </p>
+        <div class="notice" id="hero-notice"></div>
+        <noscript><p class="notice">SqueekPulse needs JavaScript to read the live Squeekchain API.</p></noscript>
+      </div>
+
+      <div class="panel kpis">
+        <dl class="kpi-grid">
+          <div class="kpi">
+            <dt data-i18n="kpiHeight">Block height</dt>
+            <dd class="value-xl" id="kpi-height">-</dd>
+          </div>
+          <div class="kpi">
+            <dt data-i18n="kpiRound">Settled round</dt>
+            <dd class="value-xl" id="kpi-round">-</dd>
+          </div>
+          <div class="kpi">
+            <dt data-i18n="kpiWork">Work per 1,000 blocks</dt>
+            <dd class="value-md" id="kpi-work">-</dd>
+          </div>
+          <div class="kpi">
+            <dt data-i18n="kpiSafe">Safe Sepolia block</dt>
+            <dd class="value-md" id="kpi-safe">-</dd>
+          </div>
+        </dl>
+        <div class="progress-row">
+          <label for="kpi-progress" data-i18n="kpiProgress">Next block</label>
+          <progress id="kpi-progress" max="100" value="0"></progress>
+          <span class="value-md" id="kpi-progress-text">-</span>
+        </div>
+        <p class="warning" id="core-paused" data-i18n="corePaused" hidden>The core contract is paused.</p>
+      </div>
+    </section>
+
+    <section class="blocks" id="blocks" aria-labelledby="blocks-title">
+      <div class="section-head">
+        <h2 id="blocks-title" data-i18n="blocksTitle">Settled blocks</h2>
+        <p class="help" data-i18n="blocksHelp">Each mosaic is seeded by its Sepolia transaction hash. Brighter mosaics completed more blocks.</p>
+      </div>
+      <div class="block-list" id="block-list" tabindex="0" role="group" aria-labelledby="blocks-title">
+        <p class="help" data-i18n="loading">Loading…</p>
+      </div>
+      <div class="notice" id="blocks-notice"></div>
+    </section>
+
+    <section class="panel" id="mint" aria-labelledby="mint-title">
+      <div class="panel-head">
+        <h2 id="mint-title" data-i18n="mintTitle">SQK mint tracker</h2>
+        <div class="segmented" id="mint-ranges" role="group" aria-label="Time range" data-i18n-aria="rangeGroup">
+          <button type="button" data-range="now" aria-pressed="true">NOW</button>
+          <button type="button" data-range="24h" aria-pressed="false">24H</button>
+          <button type="button" data-range="7d" aria-pressed="false">7D</button>
+          <button type="button" data-range="30d" aria-pressed="false">30D</button>
+        </div>
+      </div>
+      <div class="mint-top">
+        <canvas class="hen" id="hen" aria-hidden="true"></canvas>
+        <div>
+          <p class="value-xl value-mint"><span id="mint-total">-</span> SQK</p>
+          <p class="label" id="mint-total-label"></p>
+        </div>
+      </div>
+      <dl class="stat-row" id="mint-stats"></dl>
+      <p class="help" id="next-round"></p>
+      <div class="canvas-wrap"><canvas id="egg-canvas" role="img" aria-label=""></canvas></div>
+      <p class="read" id="egg-read"></p>
+      <p class="help" id="egg-help" data-hide-overlay></p>
+      <div class="notice" id="mint-notice"></div>
+      <details class="values">
+        <summary data-i18n="showValues">Show values</summary>
+        <div class="table-wrap" tabindex="0" role="group" aria-labelledby="mint-title">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col" data-i18n="thWindow">Window</th>
+                <th scope="col" data-i18n="thMinted">SQK minted</th>
+              </tr>
+            </thead>
+            <tbody id="mint-table"></tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel" id="supply" aria-labelledby="supply-title">
+      <div class="panel-head">
+        <h2 id="supply-title" data-i18n="supplyTitle">SQK supply vault</h2>
+      </div>
+      <div class="vault">
+        <div class="vault-egg" id="vault-wrap"><canvas id="vault-canvas" role="img" aria-label=""></canvas></div>
+        <div class="vault-copy">
+          <dl class="stat-stack">
+            <div>
+              <dt data-i18n="supplyCirculating">Circulating</dt>
+              <dd class="value-xl value-mint"><span id="supply-live">-</span> SQK</dd>
+            </div>
+            <div>
+              <dt data-i18n="supplyCap">Total cap</dt>
+              <dd class="value-md"><span id="supply-cap">-</span> SQK</dd>
+            </div>
+            <div data-hide-overlay>
+              <dt data-i18n="supplyUnminted">Not yet minted</dt>
+              <dd class="value-md"><span id="supply-unminted">-</span> SQK</dd>
+            </div>
+            <div data-hide-overlay>
+              <dt data-i18n="supplyBurned">Burned</dt>
+              <dd class="value-md"><span id="supply-burned">-</span> SQK</dd>
+            </div>
+            <div data-hide-overlay>
+              <dt data-i18n="supplyStaked">Staked</dt>
+              <dd class="value-md"><span id="supply-staked">-</span> SQK</dd>
+            </div>
+          </dl>
+          <p class="read" id="supply-share"></p>
+          <p class="help" id="supply-dot"></p>
+        </div>
+      </div>
+      <div class="notice" id="supply-notice"></div>
+    </section>
+
+    <section class="panel" id="wheel" aria-labelledby="wheel-title">
+      <div class="panel-head">
+        <h2 id="wheel-title" data-i18n="wheelTitle">Hamster wheel distance</h2>
+        <div class="segmented" id="wheel-ranges" role="group" aria-label="Time range" data-i18n-aria="rangeGroup">
+          <button type="button" data-range="7d" aria-pressed="true">7D</button>
+          <button type="button" data-range="30d" aria-pressed="false">30D</button>
+        </div>
+      </div>
+      <dl class="stat-row" id="wheel-stats" data-hide-overlay></dl>
+      <ol class="bars" id="bars" aria-label="Distance per day" data-i18n-aria="barsAria"></ol>
+      <h3 id="heat-title" data-i18n="heatTitle">UTC activity by half hour</h3>
+      <p class="help" data-i18n="heatHelp" data-hide-overlay>Each row is a day. Each of the 48 slots is 30 minutes.</p>
+      <div class="canvas-wrap"><canvas id="heat-canvas" role="img" aria-label=""></canvas></div>
+      <p class="read" id="heat-read"></p>
+      <ul class="legend" data-hide-overlay>
+        <li><span class="swatch swatch-none" aria-hidden="true"></span><span data-i18n="heatEmpty">No data</span></li>
+        <li><span class="swatch swatch-low" aria-hidden="true"></span><span data-i18n="heatLess">Less</span></li>
+        <li><span class="swatch swatch-high" aria-hidden="true"></span><span data-i18n="heatMore">More</span></li>
+      </ul>
+      <div class="notice" id="wheel-notice"></div>
+    </section>
+
+    <section class="panel" id="events" aria-labelledby="events-title">
+      <div class="panel-head">
+        <h2 id="events-title" data-i18n="eventsTitle">On-chain event stream</h2>
+      </div>
+      <div class="event-tools" data-hide-overlay>
+        <div class="segmented" id="event-cats" role="group" aria-label="Event category" data-i18n-aria="eventsGroup">
+          <button type="button" data-cat="all" aria-pressed="true" data-i18n="catAll">All</button>
+          <button type="button" data-cat="protocol" aria-pressed="false" data-i18n="catProtocol">Protocol</button>
+          <button type="button" data-cat="players" aria-pressed="false" data-i18n="catPlayers">Players</button>
+          <button type="button" data-cat="measurement" aria-pressed="false" data-i18n="catMeasurement">Wheel</button>
+        </div>
+        <button type="button" class="btn btn-quiet" id="event-pause" data-i18n="pause">Pause stream</button>
+      </div>
+      <div class="event-log" tabindex="0" role="log" aria-live="polite" aria-relevant="additions" aria-labelledby="events-title">
+        <ol class="event-list" id="event-list"></ol>
+      </div>
+      <p class="help" id="events-empty" data-i18n="loading">Loading…</p>
+      <div class="notice" id="events-notice"></div>
+      <button type="button" class="btn btn-quiet" id="event-older" data-i18n="older" data-hide-overlay hidden>Load older events</button>
+    </section>
+
+    <section class="panel" id="kit" aria-labelledby="kit-title">
+      <div class="panel-head">
+        <h2 id="kit-title" data-i18n="kitTitle">OBS overlay</h2>
+      </div>
+      <p class="help" data-i18n="kitHelp">Add this link as a Browser source at 1920 x 1080. The background stays transparent.</p>
+      <fieldset class="kit-panels">
+        <legend data-i18n="kitPanels">Panels to show</legend>
+        <label><input type="checkbox" name="panel" value="blocks" checked> <span data-i18n="navBlocks">Blocks</span></label>
+        <label><input type="checkbox" name="panel" value="mint" checked> <span data-i18n="navMint">Mint</span></label>
+        <label><input type="checkbox" name="panel" value="supply" checked> <span data-i18n="navSupply">Supply</span></label>
+        <label><input type="checkbox" name="panel" value="wheel" checked> <span data-i18n="navWheel">Wheel</span></label>
+        <label><input type="checkbox" name="panel" value="events" checked> <span data-i18n="navEvents">Events</span></label>
+      </fieldset>
+      <label class="field" for="overlay-link">
+        <span data-i18n="kitLink">Overlay link</span>
+        <input type="text" id="overlay-link" readonly spellcheck="false">
+      </label>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p data-i18n="footerData">Data from api.squeekchain.com. Testnet SQK has no monetary value.</p>
+    <a href="https://docs.squeekchain.com/" target="_blank" rel="noopener" data-i18n="docsLink">Read the Squeekchain docs</a>
+  </footer>
+</body>
+</html>
